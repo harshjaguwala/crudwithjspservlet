@@ -7,23 +7,25 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.mysql.cj.protocol.Resultset;
+
 
 import net.javaguides.registration.model.Employees;
+import net.javaguides.registration.model.Skiils;
 
 public class EmployeeDao {
+	int generateId;
 	private String jdbcURL = "jdbc:mysql://localhost:3306/testdb?useSSL=false";
 	private String username = "root";
 	private String password = "root";
-	private String insertemp = "INSERT INTO  testdb.employeetbl (id,first_name,Skills,Age,Salary,`Joining Date`)  "
+	private String insertemp = "INSERT INTO  testdb.employeetbl (id,first_name,Age,Salary,`Joining Date`,gender)  "
 			+ "values(?,?,?,?,?,?);";
-	private String selectempbyid = "select id,first_name,Skills,Age,Salary,`Joining Date` from testdb.employeetbl where id = ?";
-	private String allskills = "select Skills from testdb.employeetbl ";
-	private String selectskills = "select id,first_name,Skills,Age,Salary,`Joining Date` from testdb.employeetbl where skills = ?";
-	private String selectemp = "select id,first_name,Skills,Age,Salary,`Joining Date` from testdb.employeetbl";
+	private String selectempbyid = "select e.id,s.skillid,s.skillid,e.first_name,e.Age,e.Salary,e.`Joining Date`,e.gender,s.Skills from  testdb.employeetbl e INNER JOIN testdb.skiils s  where e.id = s.id and e.id=?;";
+	private String selectemp = "select e.id,s.skillid,e.first_name,e.Age,e.Salary,e.`Joining Date`,e.gender,s.Skills from  testdb.employeetbl e INNER JOIN testdb.skiils s where e.id = s.id;";
 	private String deleteemp = "delete from testdb.employeetbl where id = ?";
-	private String updateemp = "update testdb.employeetbl set first_name=? , skills=?, Age=?, Salary = ?, `Joining Date` = ? where id = ? ";
-
+	private String updateemp = "update testdb.employeetbl set first_name=? ,  Age=?, Salary = ?, `Joining Date` = ?,gender = ? where id = ? ";
+	private String insertskill = "Insert into skiils(skillid,id,Skills) values(?,?,?);";
+	private String selectallskill = "Select skillid,Skills,id FROM testdb.skiils;";
+	private String updateskill = "update testdb.skiils set Skills=? where id=?;";
 	protected Connection getconnection() {
 		Connection con = null;
 		try {
@@ -36,13 +38,35 @@ public class EmployeeDao {
 	}
 
 	public void insertEmp(Employees emp) {
-		try (Connection connecion = getconnection(); PreparedStatement ps = connecion.prepareStatement(insertemp)) {
+		try (Connection connecion = getconnection();
+			PreparedStatement ps = connecion.prepareStatement(insertemp,java.sql.Statement.RETURN_GENERATED_KEYS)) {
 			ps.setInt(1, emp.getId());
 			ps.setString(2, emp.getFirstname());
-			ps.setString(3, emp.getSkills());
-			ps.setString(4, emp.getAge());
-			ps.setString(5, emp.getSalary());
-			ps.setString(6, emp.getJoiningdate());
+			ps.setString(3, emp.getAge());
+			ps.setString(4, emp.getSalary());
+			ps.setString(5, emp.getJoiningdate());
+			ps.setString(6, emp.getgender());
+			System.out.println(ps);
+			int affectedrows = ps.executeUpdate();
+			if(affectedrows > 0)
+			{
+				ResultSet generatedKeys = ps.getGeneratedKeys();
+				if(generatedKeys.next())
+				{
+					generateId = generatedKeys.getInt(1);
+				}
+				generatedKeys.close();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	public void insertSkill(Skiils  skill) {
+		try (Connection connecion = getconnection(); PreparedStatement ps = connecion.prepareStatement(insertskill)) {
+			ps.setInt(1, skill.getSkillid());
+			ps.setLong(2, generateId);
+			ps.setString(3, skill.getSkillname());
 			System.out.println(ps);
 			ps.executeUpdate();
 		} catch (Exception e) {
@@ -54,11 +78,24 @@ public class EmployeeDao {
 		boolean rowupdated = false;
 		try (Connection connecion = getconnection(); PreparedStatement ps = connecion.prepareStatement(updateemp)) {
 			ps.setString(1, emp.getFirstname());
-			ps.setString(2, emp.getSkills());
-			ps.setString(3, emp.getAge());
-			ps.setString(4, emp.getSalary());
-			ps.setString(5, emp.getJoiningdate());
+			ps.setString(2, emp.getAge());
+			ps.setString(3, emp.getSalary());
+			ps.setString(4, emp.getJoiningdate());
+			ps.setString(5, emp.getgender());
 			ps.setInt(6, emp.getId());
+			System.out.println(ps);
+			rowupdated = ps.executeUpdate() > 0;
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return rowupdated;
+	}
+	
+	public boolean updateSkill(Skiils skill) {
+		boolean rowupdated = false;
+		try (Connection connecion = getconnection(); PreparedStatement ps = connecion.prepareStatement(updateskill)) {
+			ps.setString(1, skill.getSkillname());
+			ps.setInt(2, skill.getSkillid() );
 			System.out.println(ps);
 			rowupdated = ps.executeUpdate() > 0;
 		} catch (Exception e) {
@@ -75,11 +112,13 @@ public class EmployeeDao {
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
 				String first_name = rs.getString("first_name");
-				String skills = rs.getString("Skills");
+				String gender = rs.getString("gender");
 				String age = rs.getString("Age");
 				String salary = rs.getString("Salary");
 				String joiningdate = rs.getString("Joining Date");
-				emp = new Employees(id, first_name, skills, age, salary, joiningdate);
+				String skill = rs.getString("Skills");
+				emp = new Employees(id, first_name, gender, age, salary, joiningdate,skill);
+				System.out.println("Dao employee " +  emp);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -90,101 +129,31 @@ public class EmployeeDao {
 	public List<Employees> ListAllEmployee() {
 		List<Employees> emp = new ArrayList<Employees>();
 		try (Connection connecion = getconnection(); PreparedStatement ps = connecion.prepareStatement(selectemp)) {
-
 			System.out.println(ps);
 			ResultSet rs = ps.executeQuery();
 			while (rs.next()) {
 				int id = rs.getInt("id");
+				int skillid = rs.getInt("skillid");
 				String first_name = rs.getString("first_name");
-				String skills = rs.getString("Skills");
+				String gender = rs.getString("gender");
 				String age = rs.getString("Age");
 				String salary = rs.getString("Salary");
 				String joiningdate = rs.getString("Joining Date");
-				emp.add(new Employees(id, first_name, skills, age, salary, joiningdate));
+				String skill = rs.getString("Skills");
+				emp.add(new Employees(id, first_name, gender, age, salary, joiningdate, skill, skillid));
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		return emp;
 	}
-	
-	public List<Employees> ListAllSkills() {
-		List<Employees> emp = new ArrayList<Employees>();
-		try (Connection connecion = getconnection(); PreparedStatement ps = connecion.prepareStatement(allskills)) {
-
-			System.out.println(ps);
-			ResultSet rs = ps.executeQuery();
-			while (rs.next()) {
-				
-				String skills = rs.getString("Skills");
-			
-				emp.add(new Employees(skills));
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return emp;
-	}
-	
-	public List<Employees> ListSkillsBySkill(String skill) {
-		List<Employees> emp = new ArrayList<Employees>();
-		try (Connection connecion = getconnection(); PreparedStatement ps = connecion.prepareStatement(selectskills)) {
-			ps.setString(1, skill);
-			ResultSet rs = ps.executeQuery();
-			
-			
-			System.out.println(ps);
-			rs = ps.executeQuery();
-			while (rs.next()) 
-			{
-				int id = rs.getInt("id");
-				String first_name = rs.getString("first_name");
-				String age = rs.getString("Age");
-				String salary = rs.getString("Salary");
-				String joiningdate = rs.getString("Joining Date");
-				emp.add(new Employees(id, first_name, skill, age, salary, joiningdate));
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return emp;
-	}
-
 	public boolean deleteEmployee(int id) {
 		boolean rowdeleted=false;
 		try (Connection connecion = getconnection(); PreparedStatement ps = connecion.prepareStatement(deleteemp)) {
 			ps.setInt(1, id);
 			rowdeleted = ps.executeUpdate() > 0;
 		} catch (Exception e) {
-			// TODO: handle exception
 		}
 		return rowdeleted;
 	}
-
-//	public int registerEmployee(Employees emp ) throws ClassNotFoundException
-//	{
-//		String insertemp = "INSERT INTO  testdb.employeetbl (id,first_name,Skills,Age,Salary,`Joining Date`)  "
-//				+ "values(?,?,?,?,?,?);";
-//		int result = 0;
-//		
-//		Class.forName("com.mysql.cj.jdbc.Driver");
-//		try(Connection connecion = DriverManager
-//				.getConnection("jdbc:mysql://localhost:3306/testdb?useSSL=false","root","root"))
-//		{
-//			PreparedStatement ps = connecion.prepareStatement(insertemp);
-//			ps.setInt(1, 1);
-//			ps.setString(2, emp.getFirstname());
-//			ps.setString(3, emp.getSkills());
-//			ps.setString(4, emp.getAge());
-//			ps.setString(5, emp.getSalary());
-//			ps.setString(6, emp.getJoiningdate());
-//			System.out.println(ps);
-//			result = ps.executeUpdate();
-//		}
-//		catch(Exception e)
-//		{
-//			e.printStackTrace();
-//		}
-//		return result;
-//	}
 }

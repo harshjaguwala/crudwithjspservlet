@@ -3,7 +3,7 @@
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
 <html>
 <head>
-<title>Employee Management Application</title>
+<title>User Management Application</title>
 <link rel="stylesheet"
 	href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
 	integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
@@ -36,33 +36,43 @@
 			<div class="container text-left">
 
 				<a href="<%=request.getContextPath()%>/new" class="btn btn-success">Add
-					New Employee</a><br />
-
+					New Employee</a><br/>
+				<form method="post" action="showskillwise">
+					<select name="skills" >
+						<option value="">select skill</option>
+						<c:forEach var="skills" items="${skills}">
+							<option value="">${skills.skills}</option>
+						</c:forEach>
+					</select>
+					<button type="submit" class="btn btn-info"  >Show</button>
+				</form>
 			</div>
+
+			<div></div>
 			<br>
 			<table class="table table-bordered">
 				<thead>
 					<tr>
+
 						<th>Name</th>
+						<th>skills</th>
 						<th>age</th>
 						<th>salary</th>
 						<th>joiningdate</th>
-						<th>gender</th>
-						<th>skills</th>
 						<th>Actions</th>
 					</tr>
 				</thead>
 				<tbody>
-					
+
 					<c:forEach var="emp" items="${listemp}">
+
 						<tr>
+
 							<td><c:out value="${emp.firstname}" /></td>
+							<td><c:out value="${emp.skills}" /></td>
 							<td><c:out value="${emp.age}" /></td>
 							<td><c:out value="${emp.salary}" /></td>
 							<td><c:out value="${emp.joiningdate}" /></td>
-							<td><c:out value="${emp.gender}" /></td>
-							<td><c:out value="${emp.skills}" /></td>
-							
 							<td><a href="edit?id=<c:out value='${emp.id}' />">Edit</a>
 								&nbsp;&nbsp;&nbsp;&nbsp; <a
 								href="delete?id=<c:out value='${emp.id}' />">Delete</a></td>

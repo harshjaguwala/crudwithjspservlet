@@ -52,13 +52,20 @@
 					<input type="hidden" name="id" value="<c:out value='${emp.id}' />" />
 				</c:if>
 				
+				
+				
+
 				<fieldset class="form-group">
 					<label>First Name</label>
 					<input type="text" value="<c:out value='${emp.firstname}' />" class="form-control"
 						name="firstname" required="required">
 				</fieldset>
 
-				
+				<fieldset class="form-group">
+					<label>skills</label>
+					<input type="text" value="<c:out value='${emp.skills}'  />"  class="form-control"
+						name="skills" required="required">
+				</fieldset>
 
 				<fieldset class="form-group">
 					<label>Age</label>
@@ -76,23 +83,6 @@
 					<label>joiningdate</label>
 					<input type="text" value="<c:out value='${emp.joiningdate}' />" class="form-control"
 						name="joiningdate" required="required">
-				</fieldset>
-				
-				
-				
-				<fieldset class="form-group">
-					<label>gender</label>
-					Male : <input type="radio" value="Male" 
-						name="gender" required="required">
-					Female : <input type="radio" value="Female" 
-						name="gender" required="required">
-				</fieldset>
-				
-				
-				<fieldset class="form-group">
-					<label>Skill</label>
-					Java  : <input type="checkbox"value="java" name="skill" >
-					Mysql : <input type="checkbox"value="Mysql" name="skill" >
 				</fieldset>
 
 				<button type="submit" class="btn btn-success"  >Save</button>

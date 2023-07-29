@@ -1,18 +1,18 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
 <%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c"%>
+<%@ taglib uri = "http://java.sun.com/jsp/jstl/functions" prefix = "fn" %>
+<!DOCTYPE html>
 <html>
 <head>
-<title>User Management Application</title>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
 <link rel="stylesheet"
 	href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
 	integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T"
 	crossorigin="anonymous">
-	
 </head>
 <body>
-	
-
 	<header>
 		<nav class="navbar navbar-expand-md navbar-dark"
 			style="background-color: tomato">
@@ -50,6 +50,7 @@
 
 				<c:if test="${emp != null}">
 					<input type="hidden" name="id" value="<c:out value='${emp.id}' />" />
+					<%-- <input type="hidden" name="id1" value="<c:out value='${emp.skillid}' />" /> --%>
 				</c:if>
 				
 				<fieldset class="form-group">
@@ -82,17 +83,46 @@
 				
 				<fieldset class="form-group">
 					<label>gender</label>
-					Male : <input type="radio" value="Male" 
-						name="gender" required="required">
-					Female : <input type="radio" value="Female" 
-						name="gender" required="required">
+					<c:if test = "${fn:contains({emp.gender}, 'Male')}">
+         				Male : <input type="radio"  value='Male' name="gender" required="required" checked>
+         				Female : <input type="radio"  value='Female' name="gender" required="required" >
+         			</c:if>
+      				 <c:if test = "${fn:contains({emp.gender}, 'Female')}">
+         				Male : <input type="radio"  value='Male' name="gender" required="required" >
+         				Female : <input type="radio"  value='Female' name="gender" required="required" checked>
+         			 </c:if>
+         			 
 				</fieldset>
 				
 				
 				<fieldset class="form-group">
 					<label>Skill</label>
-					Java  : <input type="checkbox"value="java" name="skill" >
-					Mysql : <input type="checkbox"value="Mysql" name="skill" >
+					  <c:if test = "${fn:contains({emp.skills}, 'java')}">
+         				Java  : <input type="checkbox" value="Java" checked name="skill" >
+         				Mysql  : <input type="checkbox" value="Mysql"   name="skill" >
+         			</c:if>
+      				 <c:if test = "${fn:contains({emp.skills}, 'Mysql')}">
+         				Mysql  : <input type="checkbox" value="Mysql"  checked name="skill" >
+         				Java  : <input type="checkbox" value="Java"  name="skill" >
+         			 </c:if>
+					
+					 <%-- <c:choose>
+         				 <c:when test = "${fn:contains({emp.skills}, 'java')} && ${fn:contains({emp.skills}, 'Mysql')}">
+				            Java  : <input type="checkbox" value="<c:out value='${emp.skills}' />" checked name="skill" >
+         					Mysql  : <input type="checkbox" value="<c:out value='${emp.skills}' />" checked  name="skill" >
+				         </c:when>
+				         
+				         <c:when test = "${fn:contains({emp.skills}, 'java')}}">
+				            Java  : <input type="checkbox" value="<c:out value='${emp.skills}' />" checked name="skill" >
+         					Mysql  : <input type="checkbox" value="<c:out value='${emp.skills}' />"   name="skill" >
+
+				         </c:when>
+				         
+				         <c:otherwise>
+				            Mysql  : <input type="checkbox" value="<c:out value='${emp.skills}' />"  checked name="skill" >
+         					Java  : <input type="checkbox" value="<c:out value='${emp.skills}' />"  name="skill" >
+				         </c:otherwise>
+				     </c:choose> --%>
 				</fieldset>
 
 				<button type="submit" class="btn btn-success"  >Save</button>

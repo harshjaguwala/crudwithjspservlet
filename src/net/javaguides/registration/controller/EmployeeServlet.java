@@ -1,6 +1,7 @@
 package net.javaguides.registration.controller;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.servlet.RequestDispatcher;
@@ -13,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import net.javaguides.registration.dao.EmployeeDao;
 import net.javaguides.registration.model.Employees;
+import net.javaguides.registration.model.Skiils;
 
 /**
  * Servlet implementation class EmployeeServlet
@@ -74,14 +76,7 @@ public class EmployeeServlet extends HttpServlet {
 				e.printStackTrace();
 			}
 			break;
-		case "/showskillwise":
-			try {
-				showSkillTable(request, response);
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
-			break;
-		
+
 		default:
 			try {
 				listemp(request, response);
@@ -92,50 +87,47 @@ public class EmployeeServlet extends HttpServlet {
 		}
 
 	}
-	private void listemp(HttpServletRequest request, HttpServletResponse response)throws ServletException, IOException 
-	{
+
+	private void listemp(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 		List<Employees> listemp = empdao.ListAllEmployee();
 		request.setAttribute("listemp", listemp);
-		
-		List<Employees> skills = empdao.ListAllSkills();
-		System.out.println(skills);
-		request.setAttribute("skills", skills);
-		
+		System.out.println("hii " +listemp);
 		RequestDispatcher rd = request.getRequestDispatcher("WEB-INF/views/emp-list.jsp");
-		
 		rd.forward(request, response);
 	}
-	private void updateEmployee(HttpServletRequest request, HttpServletResponse response)throws ServletException, IOException 
-	{
+
+	private void updateEmployee(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 		int id = Integer.parseInt(request.getParameter("id"));
 		String firstname = request.getParameter("firstname");
-		String skills = request.getParameter("skills");
+		String gender = request.getParameter("gender");
 		String age = request.getParameter("age");
 		String salary = request.getParameter("salary");
 		String joiningdate = request.getParameter("joiningdate");
-		
-		Employees emp = new Employees(id, firstname, skills, age, salary, joiningdate);
+		String[] stringArray = request.getParameterValues("skill");
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < stringArray.length; i++) 
+		{
+			sb.append(stringArray[i]);
+		}
+		String str = Arrays.toString(stringArray);
+		String finalskill = str.substring(1,str.length()-1);
+		Employees emp = new Employees(id, firstname, gender, age, salary, joiningdate,finalskill);
+		Skiils skill = new Skiils(id, finalskill, id);
+		finalskill="";
 		empdao.updateEmp(emp);
+		empdao.updateSkill(skill);
 		response.sendRedirect("list");
 	}
 
-	
-	private void showEditForm(HttpServletRequest request, HttpServletResponse response)throws ServletException, IOException 
-	{
+	private void showEditForm(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 		int id = Integer.parseInt(request.getParameter("id"));
 		Employees existingemp = empdao.selectEmployee(id);
-		RequestDispatcher rd = request.getRequestDispatcher("WEB-INF/views/employee-form.jsp");
+		System.out.println("exist " + existingemp);
+		RequestDispatcher rd = request.getRequestDispatcher("WEB-INF/views/employee-update.jsp");
 		request.setAttribute("emp", existingemp);
-		rd.forward(request, response);
-	}
-	
-	private void showSkillTable(HttpServletRequest request, HttpServletResponse response)throws ServletException, IOException 
-	{
-		String skill = request.getParameter("skills");
-		System.out.println("skill " + skill);
-		List<Employees> listempbyskill = empdao.ListSkillsBySkill("java");
-		request.setAttribute("listempbyskill", listempbyskill);
-		RequestDispatcher rd = request.getRequestDispatcher("WEB-INF/views/employee-skill.jsp");
 		rd.forward(request, response);
 	}
 
@@ -154,23 +146,30 @@ public class EmployeeServlet extends HttpServlet {
 
 	private void insertEmployee(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
-		
+
 		String firstname = request.getParameter("firstname");
-		String skills = request.getParameter("skills");
+		String gender = request.getParameter("gender");
+
+		String[] stringArray = request.getParameterValues("skill");
+		StringBuffer sb = new StringBuffer();
+		for (int i = 0; i < stringArray.length; i++) 
+		{
+			sb.append(stringArray[i]);
+		}
+		String str = Arrays.toString(stringArray);
+		String finalskill = str.substring(1,str.length()-1);
 		String age = request.getParameter("age");
 		String salary = request.getParameter("salary");
 		String joiningdate = request.getParameter("joiningdate");
-	
-		Employees emp = new Employees( firstname, skills, age, salary, joiningdate);
-		System.out.println(emp);
+		
+		Employees emp = new Employees(firstname, gender, age, salary, joiningdate,finalskill);
+		Skiils skill1 = new Skiils(finalskill);
+		System.out.println("details of employee while insert " + emp);
 		empdao.insertEmp(emp);
+		empdao.insertSkill(skill1);
 		response.sendRedirect("list");
 	}
 
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse
-	 *      response)
-	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
 		this.doGet(request, response);
